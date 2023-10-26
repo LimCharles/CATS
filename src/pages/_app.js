@@ -7,7 +7,7 @@ export default function App({ Component, pageProps }) {
     <>
       <Head>
         <link rel="icon" href="/favicon.ico" />
-        <title>WayKo</title>
+        <title>CATS</title>
       </Head>
       <SessionProvider session={pageProps.session}>
         <Component {...pageProps} />

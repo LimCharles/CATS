@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import { MongoClient } from "mongodb";
 const bcrypt = require("bcrypt");
 
 export const authOptions = {
@@ -25,12 +26,19 @@ export const authOptions = {
         if (credentials.email == null || credentials.password == null)
           return null;
 
+        const dbUrl = process.env.DATABASE_URL;
+        const client = new MongoClient(dbUrl);
+
         try {
-          const user = await prisma.client.findUnique({
-            where: {
+          await client.connect();
+          const db = client.db(dbName);
+          const collection = db.collection("admins");
+          const user = await collection
+            .find({
               email: credentials.email,
-            },
-          });
+            })
+            .toArray();
+          await client.close();
 
           if (user == null) return null;
 
@@ -42,7 +50,6 @@ export const authOptions = {
             return null;
           }
         } catch (err) {
-          console.log(err);
           return null;
         }
       },
@@ -94,7 +101,7 @@ export const authOptions = {
     },
   },
   pages: {
-    signIn: "/signin",
+    signIn: "/",
   },
   debugger: true,
 };
