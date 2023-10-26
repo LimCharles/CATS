@@ -11,7 +11,6 @@ const SignIn = () => {
   //#region User Data
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
 
@@ -98,8 +97,8 @@ const SignIn = () => {
       </Modal>
 
       <Image alt="" src="/logo.png" width={200} height={200} />
-      <p className="font-bold text-3xl">Welcome Back</p>
-      <p className="text-darkcrey">The Cats of Ateneo System</p>
+      <p className="font-bold text-3xl">Welcome to CATS</p>
+      <p className="text-darkcrey">Cats of the Ateneo System</p>
       <div className="flex flex-col gap-1">
         <label className="font-semibold text-sm w-96 text-left">Email</label>
         <input
@@ -127,21 +126,9 @@ const SignIn = () => {
             setPassword(e.target.value);
           }}
         />
-        <div className="flex flex-row gap-2 pt-5 pb-1">
-          <input
-            type="checkbox"
-            className="accent-clue"
-            onChange={(e) => {
-              setRememberMe(e.target.checked);
-            }}
-          />
-          <p className="text-darkcrey text-xs font-medium">
-            Remember this account?
-          </p>
-        </div>
       </div>
       <button
-        className="font-poppins font-semibold flex flex-row gap-2 justify-center items-center bg-gradient-to-r from-clue to-creen rounded-md text-white py-3 w-96 text-sm"
+        className="font-poppins font-semibold flex flex-row gap-2 justify-center items-center bg-clue  rounded-md text-white py-3 w-96 text-sm"
         type="submit"
         onClick={(e) => {
           handleSignIn(e);

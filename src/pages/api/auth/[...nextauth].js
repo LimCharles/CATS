@@ -17,7 +17,6 @@ export const authOptions = {
         email: {
           label: "Email",
           type: "text",
-          placeholder: "bryan@wayko.com",
         },
         password: { label: "Password", type: "password" },
       },

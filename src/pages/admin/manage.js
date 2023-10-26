@@ -17,16 +17,38 @@ export async function getServerSideProps(context) {
   //#endregion
   */
 
-  return { props: {} };
+  let cats = [];
+
+  await axios
+    .get("http://localhost:3000/api/cats/get")
+    .then((res) => {
+      cats = res.data;
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+
+  return { props: { cats } };
 }
 
 const Home = ({}) => {
   const router = useRouter();
 
+  const [cats, setCats] = useState([]);
+
   return (
     <div className="flex flex-col w-screen h-screen">
       <Navbar />
-      <div className="flex flex-col"></div>
+      <div className="flex flex-col">
+        {cats.map((cat, index) => {
+          return (
+            <div className="flex flex-col px-3 py-5 bg-red-200">
+              <p>{cat.name}</p>
+              <p>{cat.breed}</p>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 };
