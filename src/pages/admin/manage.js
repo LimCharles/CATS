@@ -63,11 +63,6 @@ const Home = ({ catsData, validationRules }) => {
         </div>
         <div className="flex flex-col h-full overflow-y-auto w-1/2 bg-blue-50 px-8 py-8">
           <p className="text-clue font-medium text-2xl">Validation Rules</p>
-          {Object.keys(validationRules["$jsonSchema"].properties).map(
-            (rule, index) => {
-              return <div>{rule}:</div>;
-            }
-          )}
         </div>
       </div>
     </div>
