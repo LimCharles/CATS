@@ -22,7 +22,7 @@ const Navbar = () => {
         href="/admin/manage"
         className="px-3 py-4 hover:text-cellow text-base trasition-all duration-150 text-white"
       >
-        <p>SIGN OUT</p>
+        <p>SIGN OUT </p>
       </a>
     </div>
   );
