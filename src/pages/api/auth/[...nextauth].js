@@ -56,44 +56,11 @@ export const authOptions = {
   ],
   callbacks: {
     async jwt({ token, user, profile }) {
-      /*
-      let userId = token?.sub;
-
-      const currentTimeInSeconds = Math.floor(Date.now() / 1000);
-      if (token.exp && token.exp <= currentTimeInSeconds) {
-        throw new Error("Expired token");
-      }
-
-      try {
-        const foundUser = await prisma.client.findUnique({
-          where: {
-            id: userId,
-          },
-        });
-
-        if (!foundUser) {
-          throw new Error("User not found");
-        }
-      } catch (err) {
-        throw new Error("Database error: " + err.message);
-      }
-      */
-
       return token;
     },
     async session({ session, token, user }) {
       if (token) {
         session.user.id = token.sub;
-      }
-
-      const foundUser = await prisma.client.findUnique({
-        where: {
-          id: session.user.id,
-        },
-      });
-
-      if (!foundUser) {
-        throw new Error("User not found");
       }
 
       return session;
