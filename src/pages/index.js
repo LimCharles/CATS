@@ -97,13 +97,13 @@ const SignIn = () => {
       </Modal>
 
       <Image alt="" src="/logo.png" width={200} height={200} />
-      <p className="font-bold text-3xl">Welcome to CATS</p>
-      <p className="text-darkcrey">Cats of the Ateneo System</p>
+      <p className="font-bold text-4xl">Welcome to CATS</p>
+      <p className="text-darkcrey text-lg">Cats of the Ateneo System</p>
       <div className="flex flex-col gap-1">
-        <label className="font-semibold text-sm w-96 text-left">Email</label>
+        <label className="font-semibold text-base w-96 text-left">Email</label>
         <input
           placeholder="charles.andrew.lim@obf.ateneo.edu"
-          className="bg-chite leading-tight focus:outline-none focus:shadow-outline rounded-md px-4 py-3 border-[1px] border-crey text-sm w-96"
+          className="bg-chite leading-tight focus:outline-none focus:shadow-outline rounded-md px-4 py-3 border-[1px] border-crey text-base w-96"
           name="email"
           type="email"
           value={email}
@@ -112,11 +112,11 @@ const SignIn = () => {
             setEmail(e.target.value);
           }}
         />
-        <label className="font-semibold text-sm w-96 text-left mt-4">
+        <label className="font-semibold text-base w-96 text-left mt-4">
           Password
         </label>
         <input
-          className="bg-chite leading-tight focus:outline-none focus:shadow-outline rounded-md px-4 py-3 border-[1px] border-crey text-sm w-96"
+          className="bg-chite leading-tight focus:outline-none focus:shadow-outline rounded-md px-4 py-3 border-[1px] border-crey text-base w-96"
           placeholder="********"
           name="password"
           type="password"
@@ -128,7 +128,7 @@ const SignIn = () => {
         />
       </div>
       <button
-        className="font-poppins font-semibold flex flex-row gap-2 justify-center items-center bg-clue  rounded-md text-white py-3 w-96 text-sm"
+        className="font-poppins font-semibold flex flex-row gap-2 justify-center items-center bg-clue  rounded-md text-white py-3 w-96 text-base"
         type="submit"
         onClick={(e) => {
           handleSignIn(e);

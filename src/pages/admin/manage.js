@@ -2,6 +2,7 @@ import { useRouter } from "next/router";
 import { useState } from "react";
 import Navbar from "#components/Navbar";
 import axios from "axios";
+import RecursiveComponent from "#components/RecursiveComponent";
 export async function getServerSideProps(context) {
   /*
   //#region Auth
@@ -38,17 +39,15 @@ export async function getServerSideProps(context) {
       console.log(e);
     });
 
-  console.log(validationRules);
   return { props: { catsData, validationRules } };
 }
 
 const Home = ({ catsData, validationRules }) => {
   const router = useRouter();
-
   const [cats, setCats] = useState(catsData);
 
   return (
-    <div className="flex flex-col w-screen h-screen">
+    <div className="flex flex-col w-screen h-screen overflow-x-hidden">
       <Navbar />
       <div className="w-full h-full flex flex-row">
         <div className="flex flex-col h-full overflow-y-auto w-1/2">
@@ -61,8 +60,11 @@ const Home = ({ catsData, validationRules }) => {
             );
           })}
         </div>
-        <div className="flex flex-col h-full overflow-y-auto w-1/2 bg-blue-50 px-8 py-8">
+        <div className="flex flex-col h-full overflow-y-auto grow bg-blue-50 px-8 py-8">
           <p className="text-clue font-medium text-2xl">Validation Rules</p>
+          {Object.entries(validationRules).map((rule, index) => {
+            return <RecursiveComponent key={index} rule={rule} />;
+          })}
         </div>
       </div>
     </div>

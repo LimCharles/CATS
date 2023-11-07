@@ -22,10 +22,46 @@ const handler = async (req, res) => {
         listCollections: 1,
         filter: { name: "cats" },
       });
+
       const validationRules =
-        collection?.cursor?.firstBatch[0]?.options?.validator;
+        collection?.cursor?.firstBatch[0]?.options?.validator["$jsonSchema"];
+
+      let rules = {};
+
+      const unwrapObject = (objKey, objValue) => {
+        let unwrapRules = {};
+        for (const [key, value] of Object.entries(objValue.properties)) {
+          if (value.bsonType != "object") {
+            if (value.bsonType == "array") {
+              if (value?.items?.bsonType == "object") {
+                unwrapObject(key + " array", value.items);
+              } else {
+                unwrapRules[key] = value.bsonType + " " + value.items.bsonType;
+              }
+            } else {
+              unwrapRules[key] = value.bsonType;
+            }
+          } else {
+            unwrapObject(key, value);
+          }
+        }
+
+        rules[objKey] = unwrapRules;
+      };
+
+      for (const [key, value] of Object.entries(validationRules.properties)) {
+        if (value.bsonType != "object") {
+          if (value.bsonType == "array") {
+            rules[key] = value.bsonType + " " + value.items.bsonType;
+            continue;
+          }
+          rules[key] = value.bsonType;
+        } else {
+          unwrapObject(key, value);
+        }
+      }
       await client.close();
-      return res.status(200).json(validationRules);
+      return res.status(200).json(rules);
     } catch (err) {
       return res.status(500).send("Internal server error");
     }
