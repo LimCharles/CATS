@@ -1,3 +1,5 @@
+import ValidationSelect from "./ValidationSelect";
+
 const RecursiveComponent = ({ rule }) => {
   if (typeof rule[1] == "object") {
     const entries = Object.entries(rule[1]);
@@ -10,11 +12,7 @@ const RecursiveComponent = ({ rule }) => {
       </div>
     );
   } else {
-    return (
-      <p>
-        {rule[0]}: {rule[1]}
-      </p>
-    );
+    return <ValidationSelect objKey={rule[0]} value={rule[1]} />;
   }
 };
 

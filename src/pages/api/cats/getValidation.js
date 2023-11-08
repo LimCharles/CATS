@@ -34,7 +34,7 @@ const handler = async (req, res) => {
           if (value.bsonType != "object") {
             if (value.bsonType == "array") {
               if (value?.items?.bsonType == "object") {
-                unwrapObject(key + " array", value.items);
+                unwrapObject(key + " object array", value.items);
               } else {
                 unwrapRules[key] = value.bsonType + " " + value.items.bsonType;
               }
@@ -52,7 +52,7 @@ const handler = async (req, res) => {
       for (const [key, value] of Object.entries(validationRules.properties)) {
         if (value.bsonType != "object") {
           if (value.bsonType == "array") {
-            rules[key] = value.bsonType + " " + value.items.bsonType;
+            rules[key + " array"] = value.bsonType + " " + value.items.bsonType;
             continue;
           }
           rules[key] = value.bsonType;
