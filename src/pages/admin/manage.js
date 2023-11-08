@@ -1,12 +1,10 @@
 import { useRouter } from "next/router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "#components/Navbar";
 import axios from "axios";
 import RecursiveComponent from "#components/RecursiveComponent";
 import Modal from "#components/Modal";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
+import RecursiveInput from "#components/RecursiveInput";
 
 export async function getServerSideProps(context) {
   /*
@@ -52,37 +50,26 @@ const Home = ({ catsData, validationRules }) => {
   const [cats, setCats] = useState(catsData);
 
   //#region Contact Form
-  const [catForm, setCatForm] = useState({
-    name: "",
-    company: "",
-    email: "",
-    phoneNumber: "",
-    message: "",
-  });
-
-  const catSchema = z;
-
-  const {
-    clearErrors: clearCatFormErrors,
-    register: registerCatForm,
-    handleSubmit: handleCatFormSubmit,
-    control: catFormControl,
-    reset: resetCatForm,
-    formState: { errors: catFormErrors },
-    setValue: setCatFormValue,
-  } = useForm({
-    resolver: zodResolver(catSchema),
-    mode: "onBlur",
-  });
-
+  const [catForm, setCatForm] = useState({});
   const [catFormOpen, setCatFormOpen] = useState(false);
   //#endregion
 
   return (
     <div className="flex flex-col w-screen h-screen overflow-x-hidden">
       <Navbar />
-      <Modal hidden={!catFormOpen}>
-        <p>HEY</p>
+      <Modal hidden={false}>
+        <div className="flex flex-col items-start w-full overflow-y-scroll gap-2">
+          {Object.entries(validationRules).map((rule, index) => {
+            return (
+              <RecursiveInput
+                key={index}
+                rule={rule}
+                catForm={catForm}
+                setCatForm={setCatForm}
+              />
+            );
+          })}
+        </div>
       </Modal>
       <div className="w-full grow overflow-auto flex flex-row">
         <div className="flex flex-col overflow-y-auto w-1/2 p-8">
