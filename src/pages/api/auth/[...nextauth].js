@@ -30,21 +30,51 @@ export const authOptions = {
 
         try {
           await client.connect();
-          const db = client.db(dbName);
-          const collection = db.collection("admins");
-          const user = await collection
-            .find({
-              email: credentials.email,
-            })
+          const db = client.db("databASE");
+          const collection = db.collection("users");
+
+          const usersWithRoles = await collection
+            .aggregate([
+              {
+                $match: {
+                  email: credentials.email,
+                },
+              },
+              {
+                $lookup: {
+                  from: "roles",
+                  localField: "role",
+                  foreignField: "_id",
+                  as: "roleDetails",
+                },
+              },
+              {
+                $unwind: "$roleDetails",
+              },
+            ])
             .toArray();
+
+          await client.close();
+
+          if (usersWithRoles.length === 0) return null;
+
+          const user = usersWithRoles[0];
+
           await client.close();
 
           if (user == null) return null;
 
           let match = await bcrypt.compare(credentials.password, user.password);
 
+          let newUser = {
+            name: user.username,
+            email: user.email,
+            role: user.roleDetails.name,
+            image: "",
+          };
+
           if (match) {
-            return user;
+            return newUser;
           } else {
             return null;
           }
@@ -56,11 +86,15 @@ export const authOptions = {
   ],
   callbacks: {
     async jwt({ token, user, profile }) {
+      if (user) {
+        token.role = user.role;
+      }
       return token;
     },
+
     async session({ session, token, user }) {
       if (token) {
-        session.user.id = token.sub;
+        session.user.role = token.role;
       }
 
       return session;

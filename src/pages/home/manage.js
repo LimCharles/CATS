@@ -7,8 +7,6 @@ import Modal from "#components/Modal";
 import RecursiveInput from "#components/RecursiveInput";
 
 export async function getServerSideProps(context) {
-  /*
-  //#region Auth
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
     return {
@@ -18,8 +16,15 @@ export async function getServerSideProps(context) {
       },
     };
   }
-  //#endregion
-  */
+
+  if (session?.user?.role != "Admin") {
+    return {
+      redirect: {
+        destination: "/home",
+        permanent: false,
+      },
+    };
+  }
 
   let catsData = [];
   let validationRules = "";
@@ -56,7 +61,7 @@ const Home = ({ catsData, validationRules }) => {
 
   return (
     <div className="flex flex-col w-screen h-screen overflow-x-hidden">
-      <Navbar />
+      <Navbar session={session} />
       <Modal hidden={false}>
         <div className="flex flex-col items-start w-full overflow-y-scroll gap-3">
           {Object.entries(validationRules).map((rule, index) => {

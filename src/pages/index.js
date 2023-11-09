@@ -46,11 +46,9 @@ const SignIn = () => {
       {/* Loading Modal */}
       <Modal hidden={!loading}>
         <div className="flex flex-col w-full gap-4 items-center h-40">
-          <div className="flex flex-row gap-2">
+          <div className="flex flex-row gap-2 items-center">
             <Image alt="" src="/logo.png" width={30} height={30} />
-            <p className="font-bold text-transparent text-lg bg-clip-text bg-gradient-to-r from-clue to-creen">
-              CATS
-            </p>
+            <p className="font-bold text-clue">CATS</p>
           </div>
           <div className="flex flex-col gap-4 items-center justify-center grow">
             <p className="font-bold text-3xl">Loading</p>
