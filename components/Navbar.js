@@ -4,7 +4,7 @@ const Navbar = () => {
   return (
     <div className="flex flex-row px-8 py-2 bg-clue items-center justify-between">
       <div className="flex flex-row gap-8">
-        <Image alt="" src="/logo.png" width={50} height={100} />
+        <Image alt="" src="/logo.png" width={50} height={50} />
         <Link
           href="/admin"
           className="px-3 py-4 hover:text-cellow text-base trasition-all duration-150 text-white"

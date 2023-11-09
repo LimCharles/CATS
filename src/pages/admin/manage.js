@@ -58,7 +58,7 @@ const Home = ({ catsData, validationRules }) => {
     <div className="flex flex-col w-screen h-screen overflow-x-hidden">
       <Navbar />
       <Modal hidden={false}>
-        <div className="flex flex-col items-start w-full overflow-y-scroll gap-2">
+        <div className="flex flex-col items-start w-full overflow-y-scroll gap-3">
           {Object.entries(validationRules).map((rule, index) => {
             return (
               <RecursiveInput
