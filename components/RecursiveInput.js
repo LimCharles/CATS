@@ -5,16 +5,23 @@ const RecursiveInput = ({ rule, catForm, setCatForm, cats }) => {
     const entries = Object.entries(rule[1]);
     return (
       <div className="w-full">
-        <hr className="w-11/12" />
+        <hr className="w-11/12 border-black" />
         <p className="text-left">{rule[0]}</p>
         {entries.map(([key, value], index) => (
-          <RecursiveInput
-            key={index}
-            rule={[key, value]}
-            catForm={catForm}
-            setCatForm={setCatForm}
-            cats={cats}
-          />
+          <>
+            <RecursiveInput
+              key={index}
+              rule={[key, value]}
+              catForm={catForm}
+              setCatForm={setCatForm}
+              cats={cats}
+            />
+            {index == entries.length - 1 ? (
+              <hr className="w-11/12 my-2 border-black" />
+            ) : (
+              <></>
+            )}
+          </>
         ))}
       </div>
     );

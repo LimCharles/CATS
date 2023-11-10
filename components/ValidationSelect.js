@@ -1,6 +1,6 @@
 import Select from "react-select";
 import { array } from "zod";
-const ValidationSelect = ({ objKey, value }) => {
+const ValidationSelect = ({ objKey, value, required }) => {
   const options = [
     { label: "Double", value: "double" },
     { label: "String", value: "string" },
@@ -49,7 +49,7 @@ const ValidationSelect = ({ objKey, value }) => {
   );
 
   return (
-    <div className="grid grid-cols-3 gap-x-12 auto-rows-auto my-2">
+    <div className="grid grid-cols-4 gap-x-12 auto-rows-auto my-2">
       <div className="flex flex-row items-center bg-cellow rounded-md px-3 bg-opacity-30">
         <p className="text-clue bg-blue">{objKey}</p>
       </div>
@@ -76,7 +76,83 @@ const ValidationSelect = ({ objKey, value }) => {
             </div>
           ),
         }}
-        className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+        className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-30 text-clue"
+        styles={{
+          placeholder: (baseStyles, state) => ({
+            ...baseStyles,
+            color: "#003A6C",
+          }),
+          control: (baseStyles, state) => ({
+            ...baseStyles,
+            border: "0px",
+            outline: "0px",
+            minHeight: "31px",
+            height: "31px",
+            boxShadow: "none",
+            color: "#003A6C",
+          }),
+          valueContainer: (provided, state) => ({
+            ...provided,
+            height: "31px",
+            textAlign: "left",
+          }),
+          input: (provided, state) => ({
+            ...provided,
+            margin: "0px",
+          }),
+          indicatorSeparator: (state) => ({
+            display: "none",
+          }),
+          noOptionsMessage: (state) => ({
+            textAlign: "left",
+            padding: "0.5rem 1rem 0.5rem 1rem",
+          }),
+          option: (provided, state) => ({
+            ...provided,
+            color: "#003A6C",
+            backgroundColor: "white",
+            "&:active": {
+              backgroundColor: "white",
+            },
+            "&:hover": {
+              backgroundColor: "#d5b53c",
+            },
+            "&:focus": {
+              backgroundColor: "white",
+            },
+          }),
+        }}
+      />
+      <Select
+        isSearchable={true}
+        options={[
+          { label: "true", value: "true" },
+          { label: "false", value: "false" },
+        ]}
+        value={{
+          label: JSON.stringify(required),
+          value: required,
+        }}
+        components={{
+          DropdownIndicator: () => (
+            <div className="mr-4">
+              <svg
+                width="10"
+                height="14"
+                viewBox="0 0 10 14"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M2 2L7.25 7.25L2 12.5"
+                  stroke="#d5b53c"
+                  strokeWidth="2.86364"
+                />
+              </svg>
+            </div>
+          ),
+        }}
+        className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-30 text-clue"
         styles={{
           placeholder: (baseStyles, state) => ({
             ...baseStyles,
@@ -147,7 +223,7 @@ const ValidationSelect = ({ objKey, value }) => {
               </div>
             ),
           }}
-          className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+          className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-30 text-clue"
           styles={{
             placeholder: (baseStyles, state) => ({
               ...baseStyles,

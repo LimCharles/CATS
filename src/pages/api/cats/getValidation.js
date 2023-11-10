@@ -3,12 +3,10 @@ import { authOptions } from "../auth/[...nextauth]";
 import { getServerSession } from "next-auth/next";
 
 const handler = async (req, res) => {
-  /*
   const session = await getServerSession(req, res, authOptions);
   if (!session) {
     return res.status(401).send("Unauthorized");
   }
-  */
 
   const dbName = "databASE";
   if (req.method === "GET") {
@@ -25,7 +23,6 @@ const handler = async (req, res) => {
 
       const validationRules =
         collection?.cursor?.firstBatch[0]?.options?.validator["$jsonSchema"];
-
       let rules = {};
 
       const unwrapObject = (objKey, objValue) => {
@@ -61,6 +58,8 @@ const handler = async (req, res) => {
           unwrapObject(key, value);
         }
       }
+
+      rules["required"] = validationRules.required;
       await client.close();
       return res.status(200).json(rules);
     } catch (err) {

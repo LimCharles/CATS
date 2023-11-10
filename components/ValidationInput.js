@@ -1,7 +1,6 @@
 import Select from "react-select";
 import { useState } from "react";
 import axios from "axios";
-import { set } from "zod";
 
 const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
   const [error, setError] = useState("");
@@ -11,7 +10,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
     return { value: cat._id, label: cat.name };
   });
 
-  //#region Retrieve Areas
+  //#region Handle Change
   const handleChange = (newValue, index = null) => {
     const values = [
       "double",
@@ -92,6 +91,9 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
         });
       } else if (value.includes("objectId")) {
         let newOption = areas.find((area) => area.value === newValue);
+        if (newOption == null) {
+          newOption = catsOptions.find((cat) => cat.value === newValue);
+        }
         existingArr[index] = newOption;
         setCatForm({
           ...catForm,
@@ -107,8 +109,11 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
       });
       setError("");
     } else if (value == "objectId") {
+      let newOption = areas.find((area) => area.value === newValue);
+      if (newOption == null) {
+        newOption = catsOptions.find((cat) => cat.value === newValue);
+      }
       setCatForm((prevState) => {
-        let newOption = areas.find((area) => area.value == newValue);
         return {
           ...prevState,
           [objKey]: newOption,
@@ -223,7 +228,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
                             </div>
                           ),
                         }}
-                        className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                        className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
                         styles={{
                           placeholder: (baseStyles, state) => ({
                             ...baseStyles,
@@ -378,7 +383,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
                             </div>
                           ),
                         }}
-                        className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                        className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
                         styles={{
                           placeholder: (baseStyles, state) => ({
                             ...baseStyles,
@@ -500,7 +505,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
                     return (
                       <input
                         key={objKey + index}
-                        className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-40 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+                        className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
                         type={
                           value == "array date" ? "date" : value.split(" ")[1]
                         }
@@ -616,7 +621,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
                       </div>
                     ),
                   }}
-                  className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                  className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
                   styles={{
                     placeholder: (baseStyles, state) => ({
                       ...baseStyles,
@@ -717,7 +722,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
                       </div>
                     ),
                   }}
-                  className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                  className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
                   styles={{
                     placeholder: (baseStyles, state) => ({
                       ...baseStyles,
@@ -786,7 +791,7 @@ const ValidationInput = ({ objKey, value, setCatForm, catForm, cats }) => {
               </label>
               <div className="flex flex-row items-center gap-2 min-h-[34px]">
                 <input
-                  className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-40 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+                  className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
                   type={value == "date" ? "date" : value}
                   id={objKey}
                   name={objKey}
