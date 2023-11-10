@@ -27,7 +27,9 @@ const Home = ({ session }) => {
   return (
     <div className="flex flex-col w-screen h-screen">
       <Navbar session={session} />
-      <div className="flex flex-col"></div>
+      <div className="flex flex-col">
+        <p>HEY</p>
+      </div>
     </div>
   );
 };
