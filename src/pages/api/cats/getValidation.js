@@ -36,7 +36,8 @@ const handler = async (req, res) => {
               if (value?.items?.bsonType == "object") {
                 unwrapObject(key + " object array", value.items);
               } else {
-                unwrapRules[key] = value.bsonType + " " + value.items.bsonType;
+                unwrapRules[key + " array"] =
+                  value.bsonType + " " + value.items.bsonType;
               }
             } else {
               unwrapRules[key] = value.bsonType;

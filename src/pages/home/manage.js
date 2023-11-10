@@ -5,6 +5,8 @@ import axios from "axios";
 import RecursiveComponent from "#components/RecursiveComponent";
 import Modal from "#components/Modal";
 import RecursiveInput from "#components/RecursiveInput";
+import { authOptions } from "../api/auth/[...nextauth]";
+import { getServerSession } from "next-auth";
 
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
@@ -47,10 +49,10 @@ export async function getServerSideProps(context) {
       console.log(e);
     });
 
-  return { props: { catsData, validationRules } };
+  return { props: { catsData, validationRules, session } };
 }
 
-const Home = ({ catsData, validationRules }) => {
+const Home = ({ catsData, validationRules, session }) => {
   const router = useRouter();
   const [cats, setCats] = useState(catsData);
 
@@ -71,9 +73,13 @@ const Home = ({ catsData, validationRules }) => {
                 rule={rule}
                 catForm={catForm}
                 setCatForm={setCatForm}
+                cats={cats}
               />
             );
           })}
+          <button className="flex flex-row items-center justify-center px-4 py-2 bg-cellow text-clue rounded-md my-6">
+            Add Cat
+          </button>
         </div>
       </Modal>
       <div className="w-full grow overflow-auto flex flex-row">

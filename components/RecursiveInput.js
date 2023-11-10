@@ -1,6 +1,6 @@
 import ValidationInput from "./ValidationInput";
 
-const RecursiveInput = ({ rule, catForm, setCatForm }) => {
+const RecursiveInput = ({ rule, catForm, setCatForm, cats }) => {
   if (typeof rule[1] == "object") {
     const entries = Object.entries(rule[1]);
     return (
@@ -13,6 +13,7 @@ const RecursiveInput = ({ rule, catForm, setCatForm }) => {
             rule={[key, value]}
             catForm={catForm}
             setCatForm={setCatForm}
+            cats={cats}
           />
         ))}
       </div>
@@ -24,6 +25,7 @@ const RecursiveInput = ({ rule, catForm, setCatForm }) => {
         value={rule[1]}
         catForm={catForm}
         setCatForm={setCatForm}
+        cats={cats}
       />
     );
   }

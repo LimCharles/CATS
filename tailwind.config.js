@@ -20,6 +20,22 @@ module.exports = {
       fontFamily: {
         sans: ["Catamaran", "sans-serif"],
       },
+      keyframes: {
+        superbounce: {
+          "0%": {
+            transform: "translateY(0)",
+            animationTiming: "cubic-bezier(0.8,0,1,1)",
+          },
+          "50%": {
+            transform: "translateY(-100%)",
+            animationTiming: "cubic-bezier(0,0,0.2,1)",
+          },
+          "100%": {
+            transform: "translateY(0)",
+            animationTiming: "cubic-bezier(0.8,0,1,1)",
+          },
+        },
+      },
       animation: {
         superbounce: "superbounce 2s infinite",
       },
