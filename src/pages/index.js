@@ -97,7 +97,7 @@ const SignIn = () => {
       <Image alt="" src="/logo.png" width={200} height={200} />
       <p className="font-bold text-4xl">Welcome to CATS</p>
       <p className="text-darkcrey text-lg">Cats of the Ateneo System</p>
-      <div className="flex flex-col gap-1">
+      <form className="flex flex-col gap-1">
         <label className="font-semibold text-base w-96 text-left">Email</label>
         <input
           placeholder="charles.andrew.lim@obf.ateneo.edu"
@@ -124,16 +124,16 @@ const SignIn = () => {
             setPassword(e.target.value);
           }}
         />
-      </div>
-      <button
-        className="font-poppins font-semibold flex flex-row gap-2 justify-center items-center bg-clue  rounded-md text-white py-3 w-96 text-base"
-        type="submit"
-        onClick={(e) => {
-          handleSignIn(e);
-        }}
-      >
-        Login
-      </button>
+        <button
+          className="font-poppins font-semibold flex flex-row gap-2 justify-center items-center bg-clue  rounded-md text-white py-3 w-96 text-base mt-6"
+          type="submit"
+          onClick={(e) => {
+            handleSignIn(e);
+          }}
+        >
+          Login
+        </button>
+      </form>
     </div>
   );
 };
