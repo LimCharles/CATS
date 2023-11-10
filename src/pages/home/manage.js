@@ -220,7 +220,7 @@ const Home = ({ catsData, validationRules, session }) => {
         </div>
         <div className="flex flex-col overflow-y-auto grow bg-blue-50 p-8">
           <p className="text-clue font-medium text-2xl">Validation Rules</p>
-          <div className="grid grid-cols-4 gap-x-12 auto-rows-auto my-3">
+          <div className="grid grid-cols-4 gap-x-6 auto-rows-auto my-3">
             <p className="text-lg text-clue">Attribute Name</p>
             <p className="text-lg text-clue">Value</p>
             <p className="text-lg text-clue">Required</p>

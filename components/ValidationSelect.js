@@ -49,9 +49,9 @@ const ValidationSelect = ({ objKey, value, required }) => {
   );
 
   return (
-    <div className="grid grid-cols-4 gap-x-12 auto-rows-auto my-2">
+    <div className="grid grid-cols-4 gap-x-6 auto-rows-auto my-2">
       <div className="flex flex-row items-center bg-cellow rounded-md px-3 bg-opacity-30">
-        <p className="text-clue bg-blue">{objKey}</p>
+        <p className="text-clue bg-blue text-sm">{objKey}</p>
       </div>
       <Select
         isSearchable={true}
