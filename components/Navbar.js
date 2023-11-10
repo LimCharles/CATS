@@ -1,8 +1,10 @@
 import { signOut } from "next-auth/react";
+import { redirects } from "next.config";
 import Image from "next/image";
 import Link from "next/link";
-
+import { useRouter } from "next/router";
 const Navbar = ({ session }) => {
+  const router = useRouter();
   return (
     <div className="flex flex-row px-8 py-2 bg-clue items-center justify-between">
       <div className="flex flex-row gap-8">
@@ -26,7 +28,9 @@ const Navbar = ({ session }) => {
       </div>
       <button
         onClick={() => {
-          signOut();
+          signOut({ redirect: false }).then(() => {
+            router.push("/");
+          });
         }}
         className="px-3 py-4 hover:text-cellow text-base trasition-all duration-150 text-white"
       >
