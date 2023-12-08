@@ -4,10 +4,10 @@ import Navbar from "#components/Navbar";
 import axios from "axios";
 import RecursiveComponent from "#components/RecursiveComponent";
 import Modal from "#components/Modal";
-import RecursiveInput from "#components/RecursiveInput";
 import { authOptions } from "../api/auth/[...nextauth]";
 import { getServerSession } from "next-auth";
-
+import Image from "next/image";
+import Select from "react-select";
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
@@ -66,12 +66,54 @@ const Home = ({ catsData, validationRules, session }) => {
   const router = useRouter();
   const [cats, setCats] = useState(catsData);
   const [error, setError] = useState("");
-  //#region Contact Form
-  const [catForm, setCatForm] = useState({});
+
+  //#region Cat Form
+  const [catForm, setCatForm] = useState({
+    name: "",
+    sex: "",
+    age: "",
+    breed: "",
+    isAlive: "",
+    isPregnant: "",
+    identifiers: "",
+    imageUrl: "",
+    lastSighting: {
+      location: "",
+      dateTime: "",
+    },
+    medicalInfo: {
+      causeOfDeath: "",
+      dateOfDeath: "",
+      hasVaccinations: "",
+      vaccinationTypes: [],
+      medicalHistory: "",
+    },
+    isNeutered: "",
+    isPregnant: "",
+    adoptionInfo: {
+      adopterName: "",
+      adopterContactInfo: "",
+    },
+    familyInfo: {
+      parents: [],
+      siblings: [],
+      children: [],
+    },
+    notableActivity: "",
+    remarks: "",
+  });
   const [catFormOpen, setCatFormOpen] = useState(false);
   //#endregion
 
+  const [loading, setLoading] = useState(false);
+
+  //#region Are you sure? modal
+  const [sureModalOpen, setSureModalOpen] = useState(false);
+  //#endregion
+
+  //#region Add Cat
   const addCat = async () => {
+    setLoading(true);
     await axios
       .post(
         `/api/cats/add`,
@@ -86,18 +128,25 @@ const Home = ({ catsData, validationRules, session }) => {
         setCatFormOpen(false);
         setCats([...cats, catForm]);
         setCatForm({});
+        setError("");
+        setLoading(false);
       })
       .catch((e) => {
+        setLoading(false);
+
         if (e.response.status == 400) {
           setError("Data did not pass validation");
         }
       });
   };
+  //#endregion
 
-  const deleteCat = async (cat) => {
+  //#region Update Cat
+  const updateCat = async (cat) => {
+    setLoading(true);
     await axios
       .post(
-        `/api/cats/delete`,
+        `/api/cats/update`,
         {
           cat,
         },
@@ -109,25 +158,64 @@ const Home = ({ catsData, validationRules, session }) => {
         setCatFormOpen(false);
         let newCats = cats.filter((c) => c._id != cat._id);
         setCats(newCats);
+        setError("");
         setCatForm({});
+        setLoading(false);
       })
       .catch((e) => {
+        setLoading(false);
         if (e.response.status == 400) {
           setError("Data did not pass validation");
         }
       });
   };
+  //#endregion
+
+  //#region Delete Cat
+  const [catForDeletion, setCatForDeletion] = useState(null);
+  const deleteCat = async () => {
+    setLoading(true);
+    await axios
+      .post(
+        `/api/cats/delete`,
+        {
+          cat: catForDeletion,
+        },
+        {
+          withCredentials: true,
+        }
+      )
+      .then(async (res) => {
+        setCatFormOpen(false);
+        let newCats = cats.filter((c) => c._id != catForDeletion._id);
+        setCats(newCats);
+        setCatForm({});
+        setError("");
+        setLoading(false);
+      })
+      .catch((e) => {
+        setLoading(false);
+        if (e.response.status == 400) {
+          setError("Data did not pass validation");
+        }
+      });
+  };
+  //#endregion
 
   return (
     <div className="flex flex-col w-screen h-screen overflow-x-hidden">
       <Navbar session={session} />
+      {/* Contact Form Modal */}
+
       <Modal hidden={!catFormOpen}>
-        <div className="flex flex-col items-start w-full overflow-y-scroll gap-3 py-6">
+        <div className="flex flex-col items-start w-full overflow-y-auto gap-3 py-6">
           <div className="flex flex-row justify-end px-4 w-full">
             <svg
               className="cursor-pointer"
               onClick={() => {
                 setCatFormOpen(false);
+                setCatForm({});
+                setError("");
               }}
               width={36}
               height={36}
@@ -150,29 +238,501 @@ const Home = ({ catsData, validationRules, session }) => {
               />
             </svg>
           </div>
-          {Object.entries(validationRules).map((rule, index) => {
-            if (rule[0] == "required") return <></>;
-            return (
-              <RecursiveInput
-                key={index}
-                rule={rule}
-                catForm={catForm}
-                setCatForm={setCatForm}
-                cats={cats}
-              />
-            );
-          })}
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="catName" className="text-left text-sm font-medium">
+              Name
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="catName"
+              value={catForm.name}
+              onChange={(e) => {
+                setCatForm({ ...catForm, name: e.target.value });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p htmlFor="name" className="text-left text-sm font-medium">
+              Sex
+            </p>
+            <Select
+              isSearchable={true}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  sex: e.value,
+                });
+              }}
+              options={[
+                { label: "Male", value: "Male" },
+                { label: "Female", value: "Female" },
+              ]}
+              value={{
+                label: catForm.sex,
+                value: catForm.sex,
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <div className="mr-4">
+                    <svg
+                      width="10"
+                      height="14"
+                      viewBox="0 0 10 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 2L7.25 7.25L2 12.5"
+                        stroke="#d5b53c"
+                        strokeWidth="2.86364"
+                      />
+                    </svg>
+                  </div>
+                ),
+              }}
+              className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
+              styles={{
+                placeholder: (baseStyles, state) => ({
+                  ...baseStyles,
+                  color: "#003A6C",
+                }),
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  border: "0px",
+                  outline: "0px",
+                  minHeight: "34px",
+                  height: "34px",
+                  boxShadow: "none",
+                  color: "#003A6C",
+                }),
+                valueContainer: (provided, state) => ({
+                  ...provided,
+                  height: "31px",
+                  textAlign: "left",
+                }),
+                input: (provided, state) => ({
+                  ...provided,
+                  margin: "0px",
+                }),
+                indicatorSeparator: (state) => ({
+                  display: "none",
+                }),
+                noOptionsMessage: (state) => ({
+                  textAlign: "left",
+                  padding: "0.5rem 1rem 0.5rem 1rem",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  color: "#003A6C",
+                  backgroundColor: "white",
+                  "&:active": {
+                    backgroundColor: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#d5b53c",
+                  },
+                  "&:focus": {
+                    backgroundColor: "white",
+                  },
+                }),
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="age" className="text-left text-sm font-medium">
+              Age
+            </label>
+            <input
+              type="number"
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="age"
+              value={catForm.age}
+              onChange={(e) => {
+                setCatForm({ ...catForm, age: e.target.value });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="breed" className="text-left text-sm font-medium">
+              Breed
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="breed"
+              value={catForm.breed}
+              onChange={(e) => {
+                setCatForm({ ...catForm, breed: e.target.value });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p htmlFor="name" className="text-left text-sm font-medium">
+              Pregnant
+            </p>
+            <Select
+              isSearchable={true}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  isPregnant: e.value,
+                });
+              }}
+              options={[
+                { label: "True", value: true },
+                { label: "False", value: false },
+              ]}
+              value={{
+                label:
+                  JSON.stringify(catForm.isPregnant) != '""' &&
+                  JSON.stringify(catForm.isPregnant).charAt(0).toUpperCase() +
+                    JSON.stringify(catForm.isPregnant).slice(1),
+                value: catForm.isPregnant,
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <div className="mr-4">
+                    <svg
+                      width="10"
+                      height="14"
+                      viewBox="0 0 10 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 2L7.25 7.25L2 12.5"
+                        stroke="#d5b53c"
+                        strokeWidth="2.86364"
+                      />
+                    </svg>
+                  </div>
+                ),
+              }}
+              className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
+              styles={{
+                placeholder: (baseStyles, state) => ({
+                  ...baseStyles,
+                  color: "#003A6C",
+                }),
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  border: "0px",
+                  outline: "0px",
+                  minHeight: "34px",
+                  height: "34px",
+                  boxShadow: "none",
+                  color: "#003A6C",
+                }),
+                valueContainer: (provided, state) => ({
+                  ...provided,
+                  height: "31px",
+                  textAlign: "left",
+                }),
+                input: (provided, state) => ({
+                  ...provided,
+                  margin: "0px",
+                }),
+                indicatorSeparator: (state) => ({
+                  display: "none",
+                }),
+                noOptionsMessage: (state) => ({
+                  textAlign: "left",
+                  padding: "0.5rem 1rem 0.5rem 1rem",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  color: "#003A6C",
+                  backgroundColor: "white",
+                  "&:active": {
+                    backgroundColor: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#d5b53c",
+                  },
+                  "&:focus": {
+                    backgroundColor: "white",
+                  },
+                }),
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p htmlFor="name" className="text-left text-sm font-medium">
+              Alive
+            </p>
+            <Select
+              isSearchable={true}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  isAlive: e.value,
+                });
+              }}
+              options={[
+                { label: "True", value: true },
+                { label: "False", value: false },
+              ]}
+              value={{
+                label:
+                  JSON.stringify(catForm.isAlive) != '""' &&
+                  JSON.stringify(catForm.isAlive).charAt(0).toUpperCase() +
+                    JSON.stringify(catForm.isAlive).slice(1),
+                value: catForm.isAlive,
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <div className="mr-4">
+                    <svg
+                      width="10"
+                      height="14"
+                      viewBox="0 0 10 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 2L7.25 7.25L2 12.5"
+                        stroke="#d5b53c"
+                        strokeWidth="2.86364"
+                      />
+                    </svg>
+                  </div>
+                ),
+              }}
+              className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
+              styles={{
+                placeholder: (baseStyles, state) => ({
+                  ...baseStyles,
+                  color: "#003A6C",
+                }),
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  border: "0px",
+                  outline: "0px",
+                  minHeight: "34px",
+                  height: "34px",
+                  boxShadow: "none",
+                  color: "#003A6C",
+                }),
+                valueContainer: (provided, state) => ({
+                  ...provided,
+                  height: "31px",
+                  textAlign: "left",
+                }),
+                input: (provided, state) => ({
+                  ...provided,
+                  margin: "0px",
+                }),
+                indicatorSeparator: (state) => ({
+                  display: "none",
+                }),
+                noOptionsMessage: (state) => ({
+                  textAlign: "left",
+                  padding: "0.5rem 1rem 0.5rem 1rem",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  color: "#003A6C",
+                  backgroundColor: "white",
+                  "&:active": {
+                    backgroundColor: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#d5b53c",
+                  },
+                  "&:focus": {
+                    backgroundColor: "white",
+                  },
+                }),
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="identifiers"
+              className="text-left text-sm font-medium"
+            >
+              Identifiers
+            </label>
+            <input
+              type="number"
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="identifiers"
+              value={catForm.identifiers}
+              onChange={(e) => {
+                setCatForm({ ...catForm, identifiers: e.target.value });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="imageUrl" className="text-left text-sm font-medium">
+              Image URL
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="imageUrl"
+              value={catForm.imageUrl}
+              onChange={(e) => {
+                setCatForm({ ...catForm, imageUrl: e.target.value });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="lastSightingLocation"
+              className="text-left text-sm font-medium"
+            >
+              Last Sighting Location
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="lastSightingLocation"
+              value={catForm.lastSighting?.location}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  lastSighting: {
+                    ...catForm.lastSighting,
+                    location: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="lastSightingLocation"
+              className="text-left text-sm font-medium"
+            >
+              Last Sighting Date
+            </label>
+            <input
+              autoComplete="off"
+              type="date"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="lastSightingLocation"
+              value={catForm.lastSighting?.location}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  lastSighting: {
+                    ...catForm.lastSighting,
+                    dateTime: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
           <button
             onClick={() => {
               addCat();
             }}
-            className="flex flex-row items-center justify-center px-4 py-2 bg-cellow text-clue rounded-md mt-6"
+            className="flex flex-row items-center justify-center px-4 py-2 bg-clue text-white rounded-md mt-4"
           >
             Add Cat
           </button>
           {error && <p className="text-red-500 text-xs text-left">{error}</p>}
         </div>
       </Modal>
+
+      {/* Loading Modal */}
+      <Modal hidden={!loading}>
+        <div className="flex flex-col w-full gap-4 items-center h-40">
+          <div className="flex flex-row gap-2">
+            <Image alt="" src="/logo.png" width={30} height={30} />
+            <p className="font-bold text-transparent text-lg bg-clip-text bg-gradient-to-r from-clue to-clue">
+              CATS
+            </p>
+          </div>
+          <div className="flex flex-col gap-4 items-center justify-center grow">
+            <p className="font-bold text-3xl">Loading</p>
+            <div className="flex flex-row gap-2 justify-center">
+              <svg
+                className="animate-superbounce"
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="5" cy="5" r="5" fill="#0C3777" />
+              </svg>
+              <svg
+                style={{
+                  animationDelay: "0.3s",
+                }}
+                className="animate-superbounce"
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="5" cy="5" r="5" fill="#0C3777" />
+              </svg>
+              <svg
+                style={{
+                  animationDelay: "0.5s",
+                }}
+                className="animate-superbounce"
+                width="10"
+                height="10"
+                viewBox="0 0 10 10"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <circle cx="5" cy="5" r="5" fill="#0C3777" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </Modal>
+
+      {/* Are you sure? modal */}
+      <Modal hidden={!sureModalOpen}>
+        <div className="flex flex-col gap-4">
+          <p className="text-left text-sm">
+            Are you sure you want to delete this cat?
+          </p>
+          <div className="flex flex-row gap-8">
+            <button
+              type="button"
+              onClick={() => {
+                setSureModalOpen(false);
+              }}
+              className="font-poppins font-light flex flex-row gap-2 justify-center items-center text-clue rounded-md border-[1px] border-creen py-2 w-1/3 text-sm"
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setSureModalOpen(false);
+                deleteCat(catForDeletion);
+              }}
+              className="font-poppins font-light flex flex-row gap-2 justify-center items-center bg-gradient-to-r from-clue to-clue rounded-md text-white py-2 w-1/3 text-sm"
+            >
+              Proceed
+            </button>
+          </div>
+        </div>
+      </Modal>
+
       <div className="w-full grow overflow-auto flex flex-row">
         <div className="flex flex-col overflow-y-auto w-1/2 p-8">
           <div className="flex flex-row justify-end">
@@ -199,7 +759,8 @@ const Home = ({ catsData, validationRules, session }) => {
                 </div>
                 <svg
                   onClick={() => {
-                    deleteCat(cat);
+                    setSureModalOpen(true);
+                    setCatForDeletion(cat);
                   }}
                   className="cursor-pointer"
                   height={30}

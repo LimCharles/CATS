@@ -33,6 +33,10 @@ const handler = async (req, res) => {
 
   convertObjectIds(catForm);
 
+  if (catForm?.sex == "Male" && catForm?.isPregnant) {
+    return res.status(400).send("Cat cannot be male and pregnant");
+  }
+
   if (req.method === "POST") {
     const dbUrl = process.env.DATABASE_URL;
     const client = new MongoClient(dbUrl);
@@ -40,6 +44,12 @@ const handler = async (req, res) => {
     try {
       await client.connect();
       const db = client.db(dbName);
+      const collections = await db.command({
+        listCollections: 1,
+        filter: { name: "cats" },
+      });
+
+      await client.connect();
       const collection = db.collection("cats");
       const result = await collection.insertOne(catForm);
       await client.close();

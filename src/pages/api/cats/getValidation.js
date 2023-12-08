@@ -16,6 +16,7 @@ const handler = async (req, res) => {
     try {
       await client.connect();
       const db = client.db(dbName);
+
       const collection = await db.command({
         listCollections: 1,
         filter: { name: "cats" },

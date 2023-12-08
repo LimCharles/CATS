@@ -28,7 +28,7 @@ const Home = ({ session }) => {
     <div className="flex flex-col w-screen h-screen">
       <Navbar session={session} />
       <div className="flex flex-col">
-        <p>HEY</p>
+        <p>This is a placeholder dashboard for users!</p>
       </div>
     </div>
   );
