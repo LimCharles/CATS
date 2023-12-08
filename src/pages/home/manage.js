@@ -596,21 +596,6 @@ const Home = ({ catsData, validationRules, session }) => {
             >
               Last Sighting Location
             </label>
-            <input
-              autoComplete="off"
-              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
-              id="lastSightingLocation"
-              value={catForm.lastSighting?.location}
-              onChange={(e) => {
-                setCatForm({
-                  ...catForm,
-                  lastSighting: {
-                    ...catForm.lastSighting,
-                    location: e.target.value,
-                  },
-                });
-              }}
-            />
           </div>
 
           <div className="flex flex-col gap-1">
