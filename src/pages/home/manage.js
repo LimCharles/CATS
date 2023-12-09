@@ -67,6 +67,10 @@ const Home = ({ catsData, validationRules, session }) => {
   const [cats, setCats] = useState(catsData);
   const [error, setError] = useState("");
 
+  let catsOptions = cats.map((cat) => {
+    return { label: cat.name, value: cat._id };
+  });
+
   //#region Cat Form
   const [catForm, setCatForm] = useState({
     name: "",
@@ -75,6 +79,7 @@ const Home = ({ catsData, validationRules, session }) => {
     breed: "",
     isAlive: "",
     isPregnant: "",
+    isNeutered: "",
     identifiers: "",
     imageUrl: "",
     lastSighting: {
@@ -88,20 +93,55 @@ const Home = ({ catsData, validationRules, session }) => {
       vaccinationTypes: [],
       medicalHistory: "",
     },
-    isNeutered: "",
-    isPregnant: "",
     adoptionInfo: {
       adopterName: "",
       adopterContactInfo: "",
     },
     familyInfo: {
-      parents: [],
+      parents: ["", ""],
       siblings: [],
       children: [],
     },
     notableActivity: "",
     remarks: "",
   });
+
+  const resetCatForm = () => {
+    setCatForm({
+      name: "",
+      sex: "",
+      age: "",
+      breed: "",
+      isAlive: "",
+      isPregnant: "",
+      identifiers: "",
+      imageUrl: "",
+      lastSighting: {
+        location: "",
+        dateTime: "",
+      },
+      medicalInfo: {
+        causeOfDeath: "",
+        dateOfDeath: "",
+        hasVaccinations: "",
+        vaccinationTypes: [],
+        medicalHistory: "",
+      },
+      isNeutered: "",
+      isPregnant: "",
+      adoptionInfo: {
+        adopterName: "",
+        adopterContactInfo: "",
+      },
+      familyInfo: {
+        parents: [],
+        siblings: [],
+        children: [],
+      },
+      notableActivity: "",
+      remarks: "",
+    });
+  };
   const [catFormOpen, setCatFormOpen] = useState(false);
   //#endregion
 
@@ -127,7 +167,7 @@ const Home = ({ catsData, validationRules, session }) => {
       .then(async (res) => {
         setCatFormOpen(false);
         setCats([...cats, catForm]);
-        setCatForm({});
+        resetCatForm();
         setError("");
         setLoading(false);
       })
@@ -135,6 +175,7 @@ const Home = ({ catsData, validationRules, session }) => {
         setLoading(false);
 
         if (e.response.status == 400) {
+          console.log(e);
           setError("Data did not pass validation");
         }
       });
@@ -159,7 +200,7 @@ const Home = ({ catsData, validationRules, session }) => {
         let newCats = cats.filter((c) => c._id != cat._id);
         setCats(newCats);
         setError("");
-        setCatForm({});
+        resetCatForm();
         setLoading(false);
       })
       .catch((e) => {
@@ -189,7 +230,7 @@ const Home = ({ catsData, validationRules, session }) => {
         setCatFormOpen(false);
         let newCats = cats.filter((c) => c._id != catForDeletion._id);
         setCats(newCats);
-        setCatForm({});
+        resetCatForm();
         setError("");
         setLoading(false);
       })
@@ -202,19 +243,46 @@ const Home = ({ catsData, validationRules, session }) => {
   };
   //#endregion
 
+  //#region Areas
+  const [areasLoading, setAreasLoading] = useState(null);
+  const [areas, setAreas] = useState([]);
+  const handleFocus = async () => {
+    if (areas.length == 0) {
+      await retrieveAreas();
+    }
+  };
+
+  const retrieveAreas = async () => {
+    let areas;
+    setAreasLoading(true);
+    await axios
+      .get("/api/areas/get")
+      .then((res) => {
+        areas = res.data;
+        areas = areas.map((area) => {
+          return { value: area._id, label: area.name };
+        });
+        setAreas(areas);
+        setAreasLoading(false);
+      })
+      .catch((e) => {
+        setAreasLoading(false);
+      });
+  };
+
+  //#endregion
   return (
     <div className="flex flex-col w-screen h-screen overflow-x-hidden">
       <Navbar session={session} />
-      {/* Contact Form Modal */}
-
+      {/* Cat Form Modal */}
       <Modal hidden={!catFormOpen}>
-        <div className="flex flex-col items-start w-full overflow-y-auto gap-3 py-6">
+        <div className="flex flex-col items-start w-full overflow-y-auto gap-5 py-6">
           <div className="flex flex-row justify-end px-4 w-full">
             <svg
               className="cursor-pointer"
               onClick={() => {
                 setCatFormOpen(false);
-                setCatForm({});
+                resetCatForm();
                 setError("");
               }}
               width={36}
@@ -375,6 +443,97 @@ const Home = ({ catsData, validationRules, session }) => {
 
           <div className="flex flex-col gap-1">
             <p htmlFor="name" className="text-left text-sm font-medium">
+              Alive
+            </p>
+            <Select
+              isSearchable={true}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  isAlive: e.value,
+                });
+              }}
+              options={[
+                { label: "True", value: true },
+                { label: "False", value: false },
+              ]}
+              value={{
+                label:
+                  JSON.stringify(catForm.isAlive) != '""' &&
+                  JSON.stringify(catForm.isAlive).charAt(0).toUpperCase() +
+                    JSON.stringify(catForm.isAlive).slice(1),
+                value: catForm.isAlive,
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <div className="mr-4">
+                    <svg
+                      width="10"
+                      height="14"
+                      viewBox="0 0 10 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 2L7.25 7.25L2 12.5"
+                        stroke="#d5b53c"
+                        strokeWidth="2.86364"
+                      />
+                    </svg>
+                  </div>
+                ),
+              }}
+              className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
+              styles={{
+                placeholder: (baseStyles, state) => ({
+                  ...baseStyles,
+                  color: "#003A6C",
+                }),
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  border: "0px",
+                  outline: "0px",
+                  minHeight: "34px",
+                  height: "34px",
+                  boxShadow: "none",
+                  color: "#003A6C",
+                }),
+                valueContainer: (provided, state) => ({
+                  ...provided,
+                  height: "31px",
+                  textAlign: "left",
+                }),
+                input: (provided, state) => ({
+                  ...provided,
+                  margin: "0px",
+                }),
+                indicatorSeparator: (state) => ({
+                  display: "none",
+                }),
+                noOptionsMessage: (state) => ({
+                  textAlign: "left",
+                  padding: "0.5rem 1rem 0.5rem 1rem",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  color: "#003A6C",
+                  backgroundColor: "white",
+                  "&:active": {
+                    backgroundColor: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#d5b53c",
+                  },
+                  "&:focus": {
+                    backgroundColor: "white",
+                  },
+                }),
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p htmlFor="name" className="text-left text-sm font-medium">
               Pregnant
             </p>
             <Select
@@ -466,14 +625,14 @@ const Home = ({ catsData, validationRules, session }) => {
 
           <div className="flex flex-col gap-1">
             <p htmlFor="name" className="text-left text-sm font-medium">
-              Alive
+              Neutered
             </p>
             <Select
               isSearchable={true}
               onChange={(e) => {
                 setCatForm({
                   ...catForm,
-                  isAlive: e.value,
+                  isNeutered: e.value,
                 });
               }}
               options={[
@@ -482,10 +641,10 @@ const Home = ({ catsData, validationRules, session }) => {
               ]}
               value={{
                 label:
-                  JSON.stringify(catForm.isAlive) != '""' &&
-                  JSON.stringify(catForm.isAlive).charAt(0).toUpperCase() +
-                    JSON.stringify(catForm.isAlive).slice(1),
-                value: catForm.isAlive,
+                  JSON.stringify(catForm.isNeutered) != '""' &&
+                  JSON.stringify(catForm.isNeutered).charAt(0).toUpperCase() +
+                    JSON.stringify(catForm.isNeutered).slice(1),
+                value: catForm.isNeutered,
               }}
               components={{
                 DropdownIndicator: () => (
@@ -563,7 +722,6 @@ const Home = ({ catsData, validationRules, session }) => {
               Identifiers
             </label>
             <input
-              type="number"
               autoComplete="off"
               className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
               id="identifiers"
@@ -596,6 +754,102 @@ const Home = ({ catsData, validationRules, session }) => {
             >
               Last Sighting Location
             </label>
+            <Select
+              isSearchable={true}
+              options={areas}
+              onFocus={() => {
+                handleFocus();
+              }}
+              isLoading={areasLoading}
+              value={{
+                label:
+                  areas.length > 0 &&
+                  catForm?.lastSighting?.location &&
+                  areas.find((a) => {
+                    return a.value == catForm?.lastSighting?.location;
+                  })?.label,
+                value:
+                  areas.length > 0 &&
+                  catForm?.lastSighting?.location &&
+                  areas.find((a) => {
+                    return a.value == catForm?.lastSighting?.location;
+                  })?.label,
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <div className="mr-4">
+                    <svg
+                      width="10"
+                      height="14"
+                      viewBox="0 0 10 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 2L7.25 7.25L2 12.5"
+                        stroke="#d5b53c"
+                        strokeWidth="2.86364"
+                      />
+                    </svg>
+                  </div>
+                ),
+              }}
+              className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
+              styles={{
+                placeholder: (baseStyles, state) => ({
+                  ...baseStyles,
+                  color: "#003A6C",
+                }),
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  border: "0px",
+                  outline: "0px",
+                  minHeight: "34px",
+                  height: "34px",
+                  boxShadow: "none",
+                  color: "#003A6C",
+                }),
+                valueContainer: (provided, state) => ({
+                  ...provided,
+                  height: "31px",
+                  textAlign: "left",
+                }),
+                input: (provided, state) => ({
+                  ...provided,
+                  margin: "0px",
+                }),
+                indicatorSeparator: (state) => ({
+                  display: "none",
+                }),
+                noOptionsMessage: (state) => ({
+                  textAlign: "left",
+                  padding: "0.5rem 1rem 0.5rem 1rem",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  color: "#003A6C",
+                  backgroundColor: "white",
+                  "&:active": {
+                    backgroundColor: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#d5b53c",
+                  },
+                  "&:focus": {
+                    backgroundColor: "white",
+                  },
+                }),
+              }}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  lastSighting: {
+                    ...catForm.lastSighting,
+                    location: e.value,
+                  },
+                });
+              }}
+            />
           </div>
 
           <div className="flex flex-col gap-1">
@@ -610,7 +864,7 @@ const Home = ({ catsData, validationRules, session }) => {
               type="date"
               className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
               id="lastSightingLocation"
-              value={catForm.lastSighting?.location}
+              value={catForm.lastSighting?.dateTime}
               onChange={(e) => {
                 setCatForm({
                   ...catForm,
@@ -618,6 +872,901 @@ const Home = ({ catsData, validationRules, session }) => {
                     ...catForm.lastSighting,
                     dateTime: e.target.value,
                   },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="causeOfDeath"
+              className="text-left text-sm font-medium"
+            >
+              Cause of Death
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="causeOfDeath"
+              value={catForm.medicalInfo.causeOfDeath}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  medicalInfo: {
+                    ...catForm.medicalInfo,
+                    causeOfDeath: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="dateOfDeath"
+              className="text-left text-sm font-medium"
+            >
+              Date of Death
+            </label>
+            <input
+              type="date"
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="dateOfDeath"
+              value={catForm.medicalInfo.dateOfDeath}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  medicalInfo: {
+                    ...catForm.medicalInfo,
+                    dateOfDeath: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <p htmlFor="name" className="text-left text-sm font-medium">
+              Has Vaccinations
+            </p>
+            <Select
+              isSearchable={true}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  medicalInfo: {
+                    ...catForm.medicalInfo,
+                    hasVaccinations: e.value,
+                  },
+                });
+              }}
+              options={[
+                { label: "True", value: true },
+                { label: "False", value: false },
+              ]}
+              value={{
+                label:
+                  JSON.stringify(catForm.medicalInfo.hasVaccinations) != '""' &&
+                  JSON.stringify(catForm.medicalInfo.hasVaccinations)
+                    .charAt(0)
+                    .toUpperCase() +
+                    JSON.stringify(catForm.medicalInfo.hasVaccinations).slice(
+                      1
+                    ),
+                value: catForm.medicalInfo.hasVaccinations,
+              }}
+              components={{
+                DropdownIndicator: () => (
+                  <div className="mr-4">
+                    <svg
+                      width="10"
+                      height="14"
+                      viewBox="0 0 10 14"
+                      fill="none"
+                      xmlns="http://www.w3.org/2000/svg"
+                    >
+                      <path
+                        d="M2 2L7.25 7.25L2 12.5"
+                        stroke="#d5b53c"
+                        strokeWidth="2.86364"
+                      />
+                    </svg>
+                  </div>
+                ),
+              }}
+              className="text-sm rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-64 text-clue"
+              styles={{
+                placeholder: (baseStyles, state) => ({
+                  ...baseStyles,
+                  color: "#003A6C",
+                }),
+                control: (baseStyles, state) => ({
+                  ...baseStyles,
+                  border: "0px",
+                  outline: "0px",
+                  minHeight: "34px",
+                  height: "34px",
+                  boxShadow: "none",
+                  color: "#003A6C",
+                }),
+                valueContainer: (provided, state) => ({
+                  ...provided,
+                  height: "31px",
+                  textAlign: "left",
+                }),
+                input: (provided, state) => ({
+                  ...provided,
+                  margin: "0px",
+                }),
+                indicatorSeparator: (state) => ({
+                  display: "none",
+                }),
+                noOptionsMessage: (state) => ({
+                  textAlign: "left",
+                  padding: "0.5rem 1rem 0.5rem 1rem",
+                }),
+                option: (provided, state) => ({
+                  ...provided,
+                  color: "#003A6C",
+                  backgroundColor: "white",
+                  "&:active": {
+                    backgroundColor: "white",
+                  },
+                  "&:hover": {
+                    backgroundColor: "#d5b53c",
+                  },
+                  "&:focus": {
+                    backgroundColor: "white",
+                  },
+                }),
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p htmlFor="name" className="text-left text-sm font-medium">
+              Vaccination Types
+            </p>
+            {catForm.medicalInfo.vaccinationTypes.length > 0 &&
+              catForm.medicalInfo.vaccinationTypes.map(
+                (vaccinationType, index) => {
+                  return (
+                    <div className="flex flex-row gap-4">
+                      <div className="flex flex-col gap-1">
+                        <label
+                          htmlFor="vaccinationType"
+                          className="text-left text-sm font-medium"
+                        >
+                          Vaccination Type
+                        </label>
+                        <input
+                          autoComplete="off"
+                          className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-40 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+                          id="vaccinationType"
+                          value={
+                            catForm.medicalInfo.vaccinationTypes[index]
+                              .vaccinationType
+                          }
+                          onChange={(e) => {
+                            setCatForm((prev) => {
+                              let newVaccinationTypes =
+                                prev.medicalInfo.vaccinationTypes;
+                              newVaccinationTypes[index].vaccinationType =
+                                e.target.value;
+                              return {
+                                ...prev,
+                                medicalInfo: {
+                                  ...prev.medicalInfo,
+                                  vaccinationTypes: newVaccinationTypes,
+                                },
+                              };
+                            });
+                          }}
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <label
+                          htmlFor="vaccinationDate"
+                          className="text-left text-sm font-medium"
+                        >
+                          Vaccination Date
+                        </label>
+                        <input
+                          type="date"
+                          autoComplete="off"
+                          className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-40 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+                          id="vaccinationDate"
+                          value={
+                            catForm.medicalInfo.vaccinationTypes[index]
+                              .vaccinationDate
+                          }
+                          onChange={(e) => {
+                            setCatForm((prev) => {
+                              let newVaccinationTypes =
+                                prev.medicalInfo.vaccinationTypes;
+                              newVaccinationTypes[index].vaccinationDate =
+                                e.target.value;
+                              return {
+                                ...prev,
+                                medicalInfo: {
+                                  ...prev.medicalInfo,
+                                  vaccinationTypes: newVaccinationTypes,
+                                },
+                              };
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                }
+              )}
+            <div className="flex flex-row gap-3 items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="23"
+                height="23"
+                fill="none"
+                className="cursor-pointer"
+                onClick={() => {
+                  setCatForm({
+                    ...catForm,
+                    medicalInfo: {
+                      ...catForm.medicalInfo,
+                      vaccinationTypes: [
+                        ...catForm.medicalInfo.vaccinationTypes,
+                        {
+                          vaccinationType: "",
+                          vaccinationDate: "",
+                        },
+                      ],
+                    },
+                  });
+                }}
+              >
+                <rect
+                  width="16"
+                  height="16"
+                  stroke="#d5b53c"
+                  stroke-width="1.5"
+                  rx="8"
+                  transform="scale(1 -1) rotate(45 33.238 2.747)"
+                />
+                <path
+                  stroke="#d5b53c"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M15.103 11.495h-3.536V7.96"
+                />
+                <path
+                  stroke="#d5b53c"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M11.678 14.92v-3.535H8.142"
+                />
+              </svg>
+              <p className="text-sm">Add Vaccination Type</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="medicalHistory"
+              className="text-left text-sm font-medium"
+            >
+              Medical History
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="medicalHistory"
+              value={catForm.medicalInfo.medicalHistory}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  medicalInfo: {
+                    ...catForm.medicalInfo,
+                    medicalHistory: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="adopterName"
+              className="text-left text-sm font-medium"
+            >
+              Adopter Name
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="adopterName"
+              value={catForm.adoptionInfo.adopterName}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  adoptionInfo: {
+                    ...catForm.adoptionInfo,
+                    adopterName: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="adopterContactInfo"
+              className="text-left text-sm font-medium"
+            >
+              Adopter Contact Info
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="adopterContactInfo"
+              value={catForm.adoptionInfo.adopterContactInfo}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  adoptionInfo: {
+                    ...catForm.adoptionInfo,
+                    adopterContactInfo: e.target.value,
+                  },
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-row gap-3">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="parent" className="text-left text-sm font-medium">
+                Parent
+              </label>
+              <Select
+                isSearchable={true}
+                options={catsOptions}
+                value={{
+                  label:
+                    catsOptions.length > 0 &&
+                    catsOptions.find((c) => {
+                      return c.value == catForm?.familyInfo?.parents[0];
+                    })?.label,
+                  value:
+                    catsOptions.length > 0 &&
+                    catsOptions.find((c) => {
+                      return c.value == catForm?.familyInfo?.parents[0];
+                    })?.label,
+                }}
+                components={{
+                  DropdownIndicator: () => (
+                    <div className="mr-4">
+                      <svg
+                        width="10"
+                        height="14"
+                        viewBox="0 0 10 14"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 2L7.25 7.25L2 12.5"
+                          stroke="#d5b53c"
+                          strokeWidth="2.86364"
+                        />
+                      </svg>
+                    </div>
+                  ),
+                }}
+                className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                styles={{
+                  placeholder: (baseStyles, state) => ({
+                    ...baseStyles,
+                    color: "#003A6C",
+                  }),
+                  control: (baseStyles, state) => ({
+                    ...baseStyles,
+                    border: "0px",
+                    outline: "0px",
+                    minHeight: "34px",
+                    height: "34px",
+                    boxShadow: "none",
+                    color: "#003A6C",
+                  }),
+                  valueContainer: (provided, state) => ({
+                    ...provided,
+                    height: "31px",
+                    textAlign: "left",
+                  }),
+                  input: (provided, state) => ({
+                    ...provided,
+                    margin: "0px",
+                  }),
+                  indicatorSeparator: (state) => ({
+                    display: "none",
+                  }),
+                  noOptionsMessage: (state) => ({
+                    textAlign: "left",
+                    padding: "0.5rem 1rem 0.5rem 1rem",
+                  }),
+                  option: (provided, state) => ({
+                    ...provided,
+                    color: "#003A6C",
+                    backgroundColor: "white",
+                    "&:active": {
+                      backgroundColor: "white",
+                    },
+                    "&:hover": {
+                      backgroundColor: "#d5b53c",
+                    },
+                    "&:focus": {
+                      backgroundColor: "white",
+                    },
+                  }),
+                }}
+                onChange={(e) => {
+                  setCatForm((prev) => {
+                    let parents = prev.familyInfo.parents;
+                    parents[0] = e.value;
+                    return {
+                      ...prev,
+                      familyInfo: {
+                        ...prev.familyInfo,
+                        parents: parents,
+                      },
+                    };
+                  });
+                }}
+              />
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <label htmlFor="parent" className="text-left text-sm font-medium">
+                Parent
+              </label>
+              <Select
+                isSearchable={true}
+                options={catsOptions}
+                value={{
+                  label:
+                    catsOptions.length > 0 &&
+                    catsOptions.find((c) => {
+                      return c.value == catForm?.familyInfo?.parents[1];
+                    })?.label,
+                  value:
+                    catsOptions.length > 0 &&
+                    catsOptions.find((c) => {
+                      return c.value == catForm?.familyInfo?.parents[1];
+                    })?.label,
+                }}
+                components={{
+                  DropdownIndicator: () => (
+                    <div className="mr-4">
+                      <svg
+                        width="10"
+                        height="14"
+                        viewBox="0 0 10 14"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M2 2L7.25 7.25L2 12.5"
+                          stroke="#d5b53c"
+                          strokeWidth="2.86364"
+                        />
+                      </svg>
+                    </div>
+                  ),
+                }}
+                className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                styles={{
+                  placeholder: (baseStyles, state) => ({
+                    ...baseStyles,
+                    color: "#003A6C",
+                  }),
+                  control: (baseStyles, state) => ({
+                    ...baseStyles,
+                    border: "0px",
+                    outline: "0px",
+                    minHeight: "34px",
+                    height: "34px",
+                    boxShadow: "none",
+                    color: "#003A6C",
+                  }),
+                  valueContainer: (provided, state) => ({
+                    ...provided,
+                    height: "31px",
+                    textAlign: "left",
+                  }),
+                  input: (provided, state) => ({
+                    ...provided,
+                    margin: "0px",
+                  }),
+                  indicatorSeparator: (state) => ({
+                    display: "none",
+                  }),
+                  noOptionsMessage: (state) => ({
+                    textAlign: "left",
+                    padding: "0.5rem 1rem 0.5rem 1rem",
+                  }),
+                  option: (provided, state) => ({
+                    ...provided,
+                    color: "#003A6C",
+                    backgroundColor: "white",
+                    "&:active": {
+                      backgroundColor: "white",
+                    },
+                    "&:hover": {
+                      backgroundColor: "#d5b53c",
+                    },
+                    "&:focus": {
+                      backgroundColor: "white",
+                    },
+                  }),
+                }}
+                onChange={(e) => {
+                  setCatForm((prev) => {
+                    let parents = prev.familyInfo.parents;
+                    parents[1] = e.value;
+                    return {
+                      ...prev,
+                      familyInfo: {
+                        ...prev.familyInfo,
+                        parents: parents,
+                      },
+                    };
+                  });
+                }}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p htmlFor="siblings" className="text-left text-sm font-medium">
+              Siblings
+            </p>
+            {catForm.familyInfo.siblings.length > 0 &&
+              catForm.familyInfo.siblings.map((sibling, index) => {
+                return (
+                  <div className="flex flex-col gap-1">
+                    <Select
+                      isSearchable={true}
+                      options={catsOptions}
+                      value={{
+                        label:
+                          catsOptions.length > 0 &&
+                          catsOptions.find((c) => {
+                            return (
+                              c.value == catForm?.familyInfo?.siblings[index]
+                            );
+                          })?.label,
+                        value:
+                          catsOptions.length > 0 &&
+                          catsOptions.find((c) => {
+                            return (
+                              c.value == catForm?.familyInfo?.siblings[index]
+                            );
+                          })?.label,
+                      }}
+                      components={{
+                        DropdownIndicator: () => (
+                          <div className="mr-4">
+                            <svg
+                              width="10"
+                              height="14"
+                              viewBox="0 0 10 14"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M2 2L7.25 7.25L2 12.5"
+                                stroke="#d5b53c"
+                                strokeWidth="2.86364"
+                              />
+                            </svg>
+                          </div>
+                        ),
+                      }}
+                      className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                      styles={{
+                        placeholder: (baseStyles, state) => ({
+                          ...baseStyles,
+                          color: "#003A6C",
+                        }),
+                        control: (baseStyles, state) => ({
+                          ...baseStyles,
+                          border: "0px",
+                          outline: "0px",
+                          minHeight: "34px",
+                          height: "34px",
+                          boxShadow: "none",
+                          color: "#003A6C",
+                        }),
+                        valueContainer: (provided, state) => ({
+                          ...provided,
+                          height: "31px",
+                          textAlign: "left",
+                        }),
+                        input: (provided, state) => ({
+                          ...provided,
+                          margin: "0px",
+                        }),
+                        indicatorSeparator: (state) => ({
+                          display: "none",
+                        }),
+                        noOptionsMessage: (state) => ({
+                          textAlign: "left",
+                          padding: "0.5rem 1rem 0.5rem 1rem",
+                        }),
+                        option: (provided, state) => ({
+                          ...provided,
+                          color: "#003A6C",
+                          backgroundColor: "white",
+                          "&:active": {
+                            backgroundColor: "white",
+                          },
+                          "&:hover": {
+                            backgroundColor: "#d5b53c",
+                          },
+                          "&:focus": {
+                            backgroundColor: "white",
+                          },
+                        }),
+                      }}
+                      onChange={(e) => {
+                        setCatForm((prev) => {
+                          let siblings = prev.familyInfo.siblings;
+                          siblings[index] = e.value;
+                          return {
+                            ...prev,
+                            familyInfo: {
+                              ...prev.familyInfo,
+                              siblings: siblings,
+                            },
+                          };
+                        });
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            <div className="flex flex-row gap-3 items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="23"
+                height="23"
+                fill="none"
+                className="cursor-pointer"
+                onClick={() => {
+                  setCatForm({
+                    ...catForm,
+                    familyInfo: {
+                      ...catForm.familyInfo,
+                      siblings: [...catForm.familyInfo.siblings, ""],
+                    },
+                  });
+                }}
+              >
+                <rect
+                  width="16"
+                  height="16"
+                  stroke="#d5b53c"
+                  stroke-width="1.5"
+                  rx="8"
+                  transform="scale(1 -1) rotate(45 33.238 2.747)"
+                />
+                <path
+                  stroke="#d5b53c"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M15.103 11.495h-3.536V7.96"
+                />
+                <path
+                  stroke="#d5b53c"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M11.678 14.92v-3.535H8.142"
+                />
+              </svg>
+              <p className="text-sm">Add Sibling</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p htmlFor="children" className="text-left text-sm font-medium">
+              Children
+            </p>
+            {catForm.familyInfo.children.length > 0 &&
+              catForm.familyInfo.children.map((child, index) => {
+                return (
+                  <div className="flex flex-col gap-1">
+                    <Select
+                      isSearchable={true}
+                      options={catsOptions}
+                      value={{
+                        label:
+                          catsOptions.length > 0 &&
+                          catsOptions.find((c) => {
+                            return (
+                              c.value == catForm?.familyInfo?.children[index]
+                            );
+                          })?.label,
+                        value:
+                          catsOptions.length > 0 &&
+                          catsOptions.find((c) => {
+                            return (
+                              c.value == catForm?.familyInfo?.children[index]
+                            );
+                          })?.label,
+                      }}
+                      components={{
+                        DropdownIndicator: () => (
+                          <div className="mr-4">
+                            <svg
+                              width="10"
+                              height="14"
+                              viewBox="0 0 10 14"
+                              fill="none"
+                              xmlns="http://www.w3.org/2000/svg"
+                            >
+                              <path
+                                d="M2 2L7.25 7.25L2 12.5"
+                                stroke="#d5b53c"
+                                strokeWidth="2.86364"
+                              />
+                            </svg>
+                          </div>
+                        ),
+                      }}
+                      className="text-base rounded-md appearance-none border-[1px] border-crey font-sans text-left leading-tight font-light w-40 text-clue"
+                      styles={{
+                        placeholder: (baseStyles, state) => ({
+                          ...baseStyles,
+                          color: "#003A6C",
+                        }),
+                        control: (baseStyles, state) => ({
+                          ...baseStyles,
+                          border: "0px",
+                          outline: "0px",
+                          minHeight: "34px",
+                          height: "34px",
+                          boxShadow: "none",
+                          color: "#003A6C",
+                        }),
+                        valueContainer: (provided, state) => ({
+                          ...provided,
+                          height: "31px",
+                          textAlign: "left",
+                        }),
+                        input: (provided, state) => ({
+                          ...provided,
+                          margin: "0px",
+                        }),
+                        indicatorSeparator: (state) => ({
+                          display: "none",
+                        }),
+                        noOptionsMessage: (state) => ({
+                          textAlign: "left",
+                          padding: "0.5rem 1rem 0.5rem 1rem",
+                        }),
+                        option: (provided, state) => ({
+                          ...provided,
+                          color: "#003A6C",
+                          backgroundColor: "white",
+                          "&:active": {
+                            backgroundColor: "white",
+                          },
+                          "&:hover": {
+                            backgroundColor: "#d5b53c",
+                          },
+                          "&:focus": {
+                            backgroundColor: "white",
+                          },
+                        }),
+                      }}
+                      onChange={(e) => {
+                        setCatForm((prev) => {
+                          let children = prev.familyInfo.children;
+                          children[index] = e.value;
+                          return {
+                            ...prev,
+                            familyInfo: {
+                              ...prev.familyInfo,
+                              children: children,
+                            },
+                          };
+                        });
+                      }}
+                    />
+                  </div>
+                );
+              })}
+            <div className="flex flex-row gap-3 items-center">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="23"
+                height="23"
+                fill="none"
+                className="cursor-pointer"
+                onClick={() => {
+                  setCatForm({
+                    ...catForm,
+                    familyInfo: {
+                      ...catForm.familyInfo,
+                      children: [...catForm.familyInfo.children, ""],
+                    },
+                  });
+                }}
+              >
+                <rect
+                  width="16"
+                  height="16"
+                  stroke="#d5b53c"
+                  stroke-width="1.5"
+                  rx="8"
+                  transform="scale(1 -1) rotate(45 33.238 2.747)"
+                />
+                <path
+                  stroke="#d5b53c"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M15.103 11.495h-3.536V7.96"
+                />
+                <path
+                  stroke="#d5b53c"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.5"
+                  d="M11.678 14.92v-3.535H8.142"
+                />
+              </svg>
+              <p className="text-sm">Add Child</p>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label
+              htmlFor="notableActivity"
+              className="text-left text-sm font-medium"
+            >
+              Notable Activity
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="notableActivity"
+              value={catForm.notableActivity}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  notableActivity: e.target.value,
+                });
+              }}
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="remarks" className="text-left text-sm font-medium">
+              Remarks
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="remarks"
+              value={catForm.remarks}
+              onChange={(e) => {
+                setCatForm({
+                  ...catForm,
+                  remarks: e.target.value,
                 });
               }}
             />

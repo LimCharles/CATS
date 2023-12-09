@@ -10,29 +10,8 @@ const handler = async (req, res) => {
 
   if (req?.body?.catForm == null) return res.status(400).send("Bad request");
   const catForm = req.body.catForm;
-  const dbName = "databASE";
 
-  function convertObjectIds(obj) {
-    for (const key in obj) {
-      if (obj.hasOwnProperty(key)) {
-        const value = obj[key];
-        if (typeof value === "object" && value !== null) {
-          if ("value" in value && "label" in value) {
-            try {
-              obj[key] = new ObjectId(value.value);
-            } catch (error) {
-              console.error("Invalid ObjectId:", value.value, "in key:", key);
-            }
-          } else {
-            convertObjectIds(value);
-          }
-        }
-      }
-    }
-  }
-
-  convertObjectIds(catForm);
-
+  // What isn't logical to be added.
   if (catForm?.sex == "Male" && catForm?.isPregnant) {
     return res.status(400).send("Cat cannot be male and pregnant");
   }
@@ -43,12 +22,8 @@ const handler = async (req, res) => {
 
     try {
       await client.connect();
+      const dbName = "databASE";
       const db = client.db(dbName);
-      const collections = await db.command({
-        listCollections: 1,
-        filter: { name: "cats" },
-      });
-
       await client.connect();
       const collection = db.collection("cats");
       const result = await collection.insertOne(catForm);
