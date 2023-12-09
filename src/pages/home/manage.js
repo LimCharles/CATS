@@ -8,6 +8,7 @@ import { authOptions } from "../api/auth/[...nextauth]";
 import { getServerSession } from "next-auth";
 import Image from "next/image";
 import Select from "react-select";
+
 export async function getServerSideProps(context) {
   const session = await getServerSession(context.req, context.res, authOptions);
   if (!session) {
@@ -45,6 +46,46 @@ export async function getServerSideProps(context) {
       console.log(e);
     });
 
+  function formatDate(date) {
+    return new Date(date).toISOString().slice(0, 10);
+  }
+
+  function convertDatesInObject(obj) {
+    for (let key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        let value = obj[key];
+
+        // Check if the value is a string and contains dashes, suggesting a date format
+        if (
+          typeof value === "string" &&
+          value.includes("-") &&
+          !isNaN(Date.parse(value))
+        ) {
+          obj[key] = formatDate(value);
+        } else if (Array.isArray(value)) {
+          obj[key] = value.map((item) => {
+            if (
+              typeof item === "string" &&
+              item.includes("-") &&
+              !isNaN(Date.parse(item))
+            ) {
+              return formatDate(item);
+            } else if (typeof item === "object") {
+              return convertDatesInObject(item);
+            } else {
+              return item;
+            }
+          });
+        } else if (typeof value === "object") {
+          convertDatesInObject(value);
+        }
+      }
+    }
+    return obj;
+  }
+
+  catsData = catsData.map((cat) => convertDatesInObject(cat));
+
   await axios
     .get(`${process.env.BASE_URL}/api/cats/getValidation`, {
       withCredentials: true,
@@ -59,10 +100,23 @@ export async function getServerSideProps(context) {
       console.log(e);
     });
 
-  return { props: { catsData, validationRules, session } };
+  let areas;
+  await axios
+    .get(`${process.env.BASE_URL}/api/areas/get`)
+    .then((res) => {
+      areas = res.data;
+      areas = areas.map((area) => {
+        return { value: area._id, label: area.name };
+      });
+    })
+    .catch((e) => {
+      console.log(e);
+    });
+
+  return { props: { catsData, validationRules, session, areas } };
 }
 
-const Home = ({ catsData, validationRules, session }) => {
+const Home = ({ catsData, validationRules, session, areas }) => {
   const router = useRouter();
   const [cats, setCats] = useState(catsData);
   const [error, setError] = useState("");
@@ -73,6 +127,7 @@ const Home = ({ catsData, validationRules, session }) => {
 
   //#region Cat Form
   const [catForm, setCatForm] = useState({
+    catId: "",
     name: "",
     sex: "",
     age: "",
@@ -108,6 +163,7 @@ const Home = ({ catsData, validationRules, session }) => {
 
   const resetCatForm = () => {
     setCatForm({
+      catId: "",
       name: "",
       sex: "",
       age: "",
@@ -173,23 +229,22 @@ const Home = ({ catsData, validationRules, session }) => {
       })
       .catch((e) => {
         setLoading(false);
-
         if (e.response.status == 400) {
-          console.log(e);
-          setError("Data did not pass validation");
+          setError(e.response.data);
         }
       });
   };
   //#endregion
 
   //#region Update Cat
-  const updateCat = async (cat) => {
+  const [editing, setEditing] = useState(false);
+  const updateCat = async () => {
     setLoading(true);
     await axios
       .post(
         `/api/cats/update`,
         {
-          cat,
+          catForm,
         },
         {
           withCredentials: true,
@@ -197,8 +252,13 @@ const Home = ({ catsData, validationRules, session }) => {
       )
       .then(async (res) => {
         setCatFormOpen(false);
-        let newCats = cats.filter((c) => c._id != cat._id);
-        setCats(newCats);
+
+        setCats((prevCats) => {
+          let newCats = [...prevCats];
+          let index = newCats.findIndex((c) => c._id == catForm._id);
+          newCats[index] = catForm;
+          return newCats;
+        });
         setError("");
         resetCatForm();
         setLoading(false);
@@ -243,34 +303,6 @@ const Home = ({ catsData, validationRules, session }) => {
   };
   //#endregion
 
-  //#region Areas
-  const [areasLoading, setAreasLoading] = useState(null);
-  const [areas, setAreas] = useState([]);
-  const handleFocus = async () => {
-    if (areas.length == 0) {
-      await retrieveAreas();
-    }
-  };
-
-  const retrieveAreas = async () => {
-    let areas;
-    setAreasLoading(true);
-    await axios
-      .get("/api/areas/get")
-      .then((res) => {
-        areas = res.data;
-        areas = areas.map((area) => {
-          return { value: area._id, label: area.name };
-        });
-        setAreas(areas);
-        setAreasLoading(false);
-      })
-      .catch((e) => {
-        setAreasLoading(false);
-      });
-  };
-
-  //#endregion
   return (
     <div className="flex flex-col w-screen h-screen overflow-x-hidden">
       <Navbar session={session} />
@@ -281,6 +313,7 @@ const Home = ({ catsData, validationRules, session }) => {
             <svg
               className="cursor-pointer"
               onClick={() => {
+                setEditing(false);
                 setCatFormOpen(false);
                 resetCatForm();
                 setError("");
@@ -305,6 +338,21 @@ const Home = ({ catsData, validationRules, session }) => {
                 strokeWidth="1.25"
               />
             </svg>
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <label htmlFor="catId" className="text-left text-sm font-medium">
+              Cat ID
+            </label>
+            <input
+              autoComplete="off"
+              className="placeholder-darkcrey text-base rounded-md appearance-none border-[1px] border-darkcrey w-64 max-w-[650px] py-2 px-3 leading-tight focus:outline-none focus:shadow-outline font-light"
+              id="catId"
+              value={catForm.catId}
+              onChange={(e) => {
+                setCatForm({ ...catForm, catId: e.target.value });
+              }}
+            />
           </div>
 
           <div className="flex flex-col gap-1">
@@ -757,10 +805,6 @@ const Home = ({ catsData, validationRules, session }) => {
             <Select
               isSearchable={true}
               options={areas}
-              onFocus={() => {
-                handleFocus();
-              }}
-              isLoading={areasLoading}
               value={{
                 label:
                   areas.length > 0 &&
@@ -1130,22 +1174,22 @@ const Home = ({ catsData, validationRules, session }) => {
                   width="16"
                   height="16"
                   stroke="#d5b53c"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   rx="8"
                   transform="scale(1 -1) rotate(45 33.238 2.747)"
                 />
                 <path
                   stroke="#d5b53c"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M15.103 11.495h-3.536V7.96"
                 />
                 <path
                   stroke="#d5b53c"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M11.678 14.92v-3.535H8.142"
                 />
               </svg>
@@ -1557,22 +1601,22 @@ const Home = ({ catsData, validationRules, session }) => {
                   width="16"
                   height="16"
                   stroke="#d5b53c"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   rx="8"
                   transform="scale(1 -1) rotate(45 33.238 2.747)"
                 />
                 <path
                   stroke="#d5b53c"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M15.103 11.495h-3.536V7.96"
                 />
                 <path
                   stroke="#d5b53c"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M11.678 14.92v-3.535H8.142"
                 />
               </svg>
@@ -1710,22 +1754,22 @@ const Home = ({ catsData, validationRules, session }) => {
                   width="16"
                   height="16"
                   stroke="#d5b53c"
-                  stroke-width="1.5"
+                  strokeWidth="1.5"
                   rx="8"
                   transform="scale(1 -1) rotate(45 33.238 2.747)"
                 />
                 <path
                   stroke="#d5b53c"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M15.103 11.495h-3.536V7.96"
                 />
                 <path
                   stroke="#d5b53c"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.5"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="1.5"
                   d="M11.678 14.92v-3.535H8.142"
                 />
               </svg>
@@ -1772,15 +1816,19 @@ const Home = ({ catsData, validationRules, session }) => {
             />
           </div>
 
+          {error && <p className="text-red-500 text-xs text-left">{error}</p>}
           <button
             onClick={() => {
-              addCat();
+              if (editing) {
+                updateCat();
+              } else {
+                addCat();
+              }
             }}
             className="flex flex-row items-center justify-center px-4 py-2 bg-clue text-white rounded-md mt-4"
           >
-            Add Cat
+            {editing ? "Edit Cat" : "Add Cat"}
           </button>
-          {error && <p className="text-red-500 text-xs text-left">{error}</p>}
         </div>
       </Modal>
 
@@ -1882,15 +1930,84 @@ const Home = ({ catsData, validationRules, session }) => {
 
           {cats.map((cat, index) => {
             return (
-              <div className="grid grid-cols-12 w-full justify-between items-center">
+              <div className="flex flex-row w-full justify-between items-center">
+                <img
+                  width={50}
+                  height={50}
+                  src={(() => {
+                    if (cat?.imageUrl && cat.imageUrl !== "none") {
+                      const fileIdMatch = cat.imageUrl.match(/[-\w]{25,}/);
+                      return fileIdMatch
+                        ? `https://drive.google.com/uc?export=view&id=${fileIdMatch[0]}`
+                        : "/logo.png";
+                    }
+                    return "/logo.png";
+                  })()}
+                />
+
                 <div className="flex flex-col px-3 py-5 col-span-6">
-                  <p>Name: {cat.name}</p>
-                  <p>Breed: {cat.breed}</p>
+                  <p>Cat ID: {cat.catId}</p>
+                  <p>Name: {cat?.name}</p>
+                  <p>Breed: {cat?.breed}</p>
                 </div>
                 <div className="flex flex-col px-3 py-5 col-span-4">
-                  <p>Age: {cat.age}</p>
+                  <p>Identifiers: {cat.identifiers}</p>
+                  <p>
+                    Last Sighting:{" "}
+                    {
+                      areas.find((a) => {
+                        return a?.value == cat?.lastSighting?.location;
+                      })?.label
+                    }
+                  </p>
                   <p>Alive: {JSON.stringify(cat.isAlive)}</p>
                 </div>
+                <svg
+                  width="18"
+                  height="18"
+                  viewBox="0 0 18 18"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="cursor-pointer"
+                  onClick={() => {
+                    setCatFormOpen(true);
+                    setEditing(true);
+                    setCatForm((prevState) => {
+                      let updatedState = { ...prevState };
+
+                      for (let key in cat) {
+                        if (
+                          cat.hasOwnProperty(key) &&
+                          updatedState.hasOwnProperty(key)
+                        ) {
+                          if (
+                            typeof cat[key] === "object" &&
+                            cat[key] !== null &&
+                            !Array.isArray(cat[key])
+                          ) {
+                            updatedState[key] = {
+                              ...updatedState[key],
+                              ...cat[key],
+                            };
+                          } else {
+                            updatedState[key] = cat[key];
+                          }
+                        }
+                      }
+
+                      updatedState = {
+                        _id: cat._id,
+                        ...updatedState,
+                      };
+                      return updatedState;
+                    });
+                  }}
+                >
+                  <path
+                    d="M0 13.7471V17.3641H3.61702L14.2848 6.69631L10.6678 3.07929L0 13.7471ZM17.082 3.89915C17.4582 3.52298 17.4582 2.91532 17.082 2.53915L14.825 0.282128C14.4488 -0.0940425 13.8411 -0.0940425 13.465 0.282128L11.6999 2.04723L15.3169 5.66425L17.082 3.89915Z"
+                    fill="#969696"
+                  />
+                </svg>
                 <svg
                   onClick={() => {
                     setSureModalOpen(true);

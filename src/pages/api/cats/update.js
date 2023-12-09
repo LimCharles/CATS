@@ -93,7 +93,9 @@ const handler = async (req, res) => {
       const dbName = "databASE";
       const db = client.db(dbName);
       const collection = db.collection("cats");
-      const result = await collection.insertOne(catForm);
+      const filter = { _id: catForm._id };
+      const update = { $set: catForm };
+      const result = await collection.updateOne(filter, update);
       await client.close();
       return res.status(200).json(result);
     } catch (err) {
